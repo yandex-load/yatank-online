@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from distutils.core import setup
+from setuptools import setup
 
 setup(name='yatank-online',
       version='0.0',
@@ -8,8 +8,8 @@ setup(name='yatank-online',
       author='Alexey Lavrenuke',
       author_email='direvius@gmail.com',
       url='https://github.com/yandex-load/yatank-online/',
-      packages=['yandextank.plugins.OnlineReport'],
-      package_data={'yandextank.plugins.OnlineReport': [
+      packages=['yatank_OnlineReport'],
+      package_data={'yatank_OnlineReport': [
           'templates/*',
           'static/favicon.ico',
           'static/css/*',
