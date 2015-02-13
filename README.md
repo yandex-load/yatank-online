@@ -2,6 +2,14 @@
 
 Yandex.Tank OnlineReport plugin. Shows you some charts while you're shooting and saves a report in the end.
 
+## How to enable
+
+Specify these lines in your Tank configuration:
+```
+[tank]
+plugin_web=yandextank.plugins.OnlineReport
+```
+
 ## WebSockets and Nginx configuration
 
 If you want to run online interface behind nginx, then this would be useful:
