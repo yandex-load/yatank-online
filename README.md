@@ -3,8 +3,7 @@
 Yandex.Tank OnlineReport plugin. Shows you some charts while you're shooting and saves a report in the end.
 
 ## How to enable
-
-Specify these lines in your Tank configuration:
+Install with ```pip install yatank-online``` and specify these lines in your Tank configuration:
 ```
 [tank]
 plugin_web=yatank_OnlineReport
