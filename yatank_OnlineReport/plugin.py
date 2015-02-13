@@ -1,23 +1,19 @@
 ''' local webserver with online graphs '''
 from threading import Thread
-import logging
-import os.path
-import time
-import socket
-import requests
 
 from yandextank.plugins.Monitoring import MonitoringPlugin
-from yandextank.plugins.Monitoring.collector import MonitoringDataListener
-from yandextank.plugins.Aggregator import AggregatorPlugin, AggregateResultListener
+from yandextank.plugins.Aggregator import \
+    AggregatorPlugin, AggregateResultListener
 from yandextank.core import AbstractPlugin
-import yandextank.core as tankcore
 
 from server import ReportServer
 from decode import decode_aggregate, decode_monitoring
 
 from cache import DataCacher
 
+
 class OnlineReportPlugin(AbstractPlugin, Thread, AggregateResultListener):
+
     '''Interactive report plugin '''
     SECTION = "web"
 
@@ -43,14 +39,16 @@ class OnlineReportPlugin(AbstractPlugin, Thread, AggregateResultListener):
             aggregator = self.core.get_plugin_of_type(AggregatorPlugin)
             aggregator.add_result_listener(self)
         except KeyError:
-            self.log.warning("No aggregator module, no valid report will be available")
+            self.log.warning(
+                "No aggregator module, no valid report will be available")
 
         try:
             mon = self.core.get_plugin_of_type(MonitoringPlugin)
             if mon.monitoring:
                 mon.monitoring.add_listener(self)
         except KeyError:
-            self.log.warning("No monitoring module, monitroing report disabled")
+            self.log.warning(
+                "No monitoring module, monitroing report disabled")
 
     def prepare_test(self):
         try:
@@ -59,22 +57,18 @@ class OnlineReportPlugin(AbstractPlugin, Thread, AggregateResultListener):
         except Exception, ex:
             self.log.warning("Failed to start web results server: %s", ex)
 
-
     def start_test(self):
         self.start()
-
 
     def end_test(self, retcode):
         self.log.info("Ended test. Sending command to reload pages.")
         self.server.reload()
         return retcode
 
-
     def run(self):
         if (self.server):
             self.server.serve()
             self.log.info("Server started.")
-
 
     def aggregate_second(self, data):
         data = decode_aggregate(data)
@@ -99,10 +93,9 @@ class OnlineReportPlugin(AbstractPlugin, Thread, AggregateResultListener):
         report_html = self.core.mkstemp(".html", "report_")
         self.core.add_artifact_file(report_html)
         with open(report_html, 'w') as report_html_file:
-           report_html_file.write(
-               #requests.get('http://localhost:8001/offline.html').text
-               self.server.render_offline()
-           )
+            report_html_file.write(
+                self.server.render_offline()
+            )
         #raw_input('Press Enter to stop report server.')
         self.server.stop()
         del self.server

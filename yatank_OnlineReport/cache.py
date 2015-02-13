@@ -1,12 +1,10 @@
-from collections import defaultdict
-import json
 
 
 def collect_subtree(storage, subtree, ts):
     for key, node in subtree.iteritems():
         if type(node) is not dict:
             storage.setdefault(key, []).append({
-                'x': ts, 
+                'x': ts,
                 'y': node,
             })
         else:
