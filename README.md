@@ -9,6 +9,7 @@ Specify these lines in your Tank configuration:
 [tank]
 plugin_web=yandextank.plugins.OnlineReport
 ```
+Then start your shooting and go to ```http://localhost:8001/```
 
 ## WebSockets and Nginx configuration
 
