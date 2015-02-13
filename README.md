@@ -7,7 +7,7 @@ Yandex.Tank OnlineReport plugin. Shows you some charts while you're shooting and
 Specify these lines in your Tank configuration:
 ```
 [tank]
-plugin_web=yandextank.plugins.OnlineReport
+plugin_web=yatank_OnlineReport
 ```
 Then start your shooting and go to ```http://localhost:8001/```
 
