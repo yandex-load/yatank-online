@@ -79,6 +79,7 @@ class ReportServer(object):
 
     def __init__(self, cacher):
         router = TornadioRouter(Client)
+        self.server = None
         self.cacher = cacher
         self.reportUUID = uuid.uuid4().hex
         self.app = tornado.web.Application(
@@ -108,7 +109,8 @@ class ReportServer(object):
         th.start()
 
     def stop(self):
-        self.server.stop()
+        if (self.server):
+            self.server.stop()
 
     def send(self, data):
         for connection in Client.CONNECTIONS:
