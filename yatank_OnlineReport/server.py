@@ -8,7 +8,8 @@ from tornado import template
 from pyjade.ext.tornado import patch_tornado
 patch_tornado()
 
-from tornadio2 import SocketConnection, TornadioRouter, SocketServer, event
+from tornadio2 import SocketConnection, TornadioRouter, event
+from tornadio2.server import SocketServer 
 
 from threading import Thread
 
@@ -79,6 +80,7 @@ class ReportServer(object):
 
     def __init__(self, cacher):
         router = TornadioRouter(Client)
+        self.server = None
         self.cacher = cacher
         self.reportUUID = uuid.uuid4().hex
         self.app = tornado.web.Application(
@@ -103,12 +105,13 @@ class ReportServer(object):
         def run_server(server):
             tornado.ioloop.IOLoop.instance().start()
 
-        self.server = SocketServer(self.app, auto_start=False)
+        self.server = SocketServer(self.app)
         th = Thread(target=run_server, args=(self.server,))
         th.start()
 
     def stop(self):
-        self.server.stop()
+        if (self.server):
+            self.server.stop()
 
     def send(self, data):
         for connection in Client.CONNECTIONS:
