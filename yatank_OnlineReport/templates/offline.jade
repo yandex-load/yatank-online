@@ -292,7 +292,9 @@ html(lang="en")
                 }
               },
               options: {
-                renderer: 'line'
+                renderer: 'area',
+                stack: true,
+                height: $element[0].offsetHeight - 45 - 62
               },
               series: [
                 {
@@ -304,7 +306,7 @@ html(lang="en")
             $scope.protoCodes = {
               name: "Protocol return codes",
               features: {
-                palette: 'classic9',
+                palette: 'spectrum14',
                 hover: {},
                 xAxis: {},
                 yAxis: {},
@@ -314,7 +316,9 @@ html(lang="en")
                 }
               },
               options: {
-                renderer: 'line'
+                renderer: 'area',
+                stack: true,
+                height: $element[0].offsetHeight - 45 - 62
               },
               series: ((function() {
                 var ref, results;
@@ -339,7 +343,7 @@ html(lang="en")
             return $scope.netCodes = {
               name: "Network return codes",
               features: {
-                palette: 'classic9',
+                palette: 'spectrum14',
                 hover: {},
                 xAxis: {},
                 yAxis: {},
@@ -349,7 +353,9 @@ html(lang="en")
                 }
               },
               options: {
-                renderer: 'line'
+                renderer: 'area',
+                stack: true,
+                height: $element[0].offsetHeight - 45 - 62
               },
               series: ((function() {
                 var ref, results;

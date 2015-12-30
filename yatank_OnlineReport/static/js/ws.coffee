@@ -86,7 +86,7 @@ app.controller "TankReport", ($scope, $element) ->
     $scope.protoCodes =
       name: "Protocol return codes"
       features:
-        palette: 'classic9'
+        palette: 'spectrum14'
         hover: {}
         xAxis: {}
         yAxis: {}
@@ -94,7 +94,9 @@ app.controller "TankReport", ($scope, $element) ->
           toggle: true
           highlight: true
       options:
-        renderer: 'line'
+        renderer: 'area'
+        stack: true
+        height: $element[0].offsetHeight - 45 - 62
       series: ({
         name: name
         data: data
@@ -104,7 +106,7 @@ app.controller "TankReport", ($scope, $element) ->
     $scope.netCodes =
       name: "Network return codes"
       features:
-        palette: 'classic9'
+        palette: 'spectrum14'
         hover: {}
         xAxis: {}
         yAxis: {}
@@ -112,7 +114,9 @@ app.controller "TankReport", ($scope, $element) ->
           toggle: true
           highlight: true
       options:
-        renderer: 'line'
+        renderer: 'area'
+        stack: true
+        height: $element[0].offsetHeight - 45 - 62
       series: ({
         name: name
         data: data

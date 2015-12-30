@@ -169,7 +169,9 @@
           }
         },
         options: {
-          renderer: 'line'
+          renderer: 'area',
+          stack: true,
+          height: $element[0].offsetHeight - 45 - 62
         },
         series: ((function() {
           var ref, results;
@@ -204,7 +206,9 @@
           }
         },
         options: {
-          renderer: 'line'
+          renderer: 'area',
+          stack: true,
+          height: $element[0].offsetHeight - 45 - 62
         },
         series: ((function() {
           var ref, results;
