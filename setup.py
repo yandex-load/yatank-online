@@ -22,6 +22,6 @@ setup(
     install_requires=[
         'tornado',
         'tornadio2',
-        'pyjade',
+        'pyjade>=3.1.0',
     ],
 )
