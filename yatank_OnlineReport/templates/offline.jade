@@ -279,7 +279,7 @@ html(lang="en")
                 }
               })
             };
-            return $scope.rps = {
+            $scope.rps = {
               name: "Responses per second",
               features: {
                 palette: 'spectrum14',
@@ -300,6 +300,76 @@ html(lang="en")
                   data: overallData.RPS
                 }
               ]
+            };
+            $scope.protoCodes = {
+              name: "Protocol return codes",
+              features: {
+                palette: 'classic9',
+                hover: {},
+                xAxis: {},
+                yAxis: {},
+                legend: {
+                  toggle: true,
+                  highlight: true
+                }
+              },
+              options: {
+                renderer: 'line'
+              },
+              series: ((function() {
+                var ref, results;
+                ref = overallData.http_codes;
+                results = [];
+                for (name in ref) {
+                  data = ref[name];
+                  results.push({
+                    name: name,
+                    data: data
+                  });
+                }
+                return results;
+              })()).sort(function(a, b) {
+                if (parseFloat(a.name) <= parseFloat(b.name)) {
+                  return 1;
+                } else {
+                  return -1;
+                }
+              })
+            };
+            return $scope.netCodes = {
+              name: "Network return codes",
+              features: {
+                palette: 'classic9',
+                hover: {},
+                xAxis: {},
+                yAxis: {},
+                legend: {
+                  toggle: true,
+                  highlight: true
+                }
+              },
+              options: {
+                renderer: 'line'
+              },
+              series: ((function() {
+                var ref, results;
+                ref = overallData.net_codes;
+                results = [];
+                for (name in ref) {
+                  data = ref[name];
+                  results.push({
+                    name: name,
+                    data: data
+                  });
+                }
+                return results;
+              })()).sort(function(a, b) {
+                if (parseFloat(a.name) <= parseFloat(b.name)) {
+                  return 1;
+                } else {
+                  return -1;
+                }
+              })
             };
           };
           $scope.buildSeries();
@@ -327,6 +397,25 @@ html(lang="en")
               rickshaw-series="rps.series",
               rickshaw-options="rps.options",
               rickshaw-features="rps.features"
+            )
+      #codes
+        .panel.panel-default
+          .panel-heading
+            h3.panel-title {{!protoCodes.name}}
+          .panel-body
+            rickshaw(
+              rickshaw-series="protoCodes.series",
+              rickshaw-options="protoCodes.options",
+              rickshaw-features="protoCodes.features"
+            )        
+        .panel.panel-default
+          .panel-heading
+            h3.panel-title {{!netCodes.name}}
+          .panel-body
+            rickshaw(
+              rickshaw-series="netCodes.series",
+              rickshaw-options="netCodes.options",
+              rickshaw-features="netCodes.features"
             )
       #monitoring
         .host(ng-repeat="host in monitoringData")
