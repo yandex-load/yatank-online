@@ -44,6 +44,25 @@ html(lang="en")
               rickshaw-options="rps.options",
               rickshaw-features="rps.features"
             )
+      #codes
+        .panel.panel-default
+          .panel-heading
+            h3.panel-title {{!protoCodes.name}}
+          .panel-body
+            rickshaw(
+              rickshaw-series="protoCodes.series",
+              rickshaw-options="protoCodes.options",
+              rickshaw-features="protoCodes.features"
+            )        
+        .panel.panel-default
+          .panel-heading
+            h3.panel-title {{!netCodes.name}}
+          .panel-body
+            rickshaw(
+              rickshaw-series="netCodes.series",
+              rickshaw-options="netCodes.options",
+              rickshaw-features="netCodes.features"
+            )
       #monitoring
         .host(ng-repeat="host in monitoringData")
           h3 {{!host.hostname}}

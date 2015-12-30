@@ -83,6 +83,42 @@ app.controller "TankReport", ($scope, $element) ->
         data: overallData.RPS
       ]
 
+    $scope.protoCodes =
+      name: "Protocol return codes"
+      features:
+        palette: 'classic9'
+        hover: {}
+        xAxis: {}
+        yAxis: {}
+        legend:
+          toggle: true
+          highlight: true
+      options:
+        renderer: 'line'
+      series: ({
+        name: name
+        data: data
+      } for name, data of overallData.http_codes).sort (a, b) ->
+        return if parseFloat(a.name) <= parseFloat(b.name) then 1 else -1
+
+    $scope.netCodes =
+      name: "Network return codes"
+      features:
+        palette: 'classic9'
+        hover: {}
+        xAxis: {}
+        yAxis: {}
+        legend:
+          toggle: true
+          highlight: true
+      options:
+        renderer: 'line'
+      series: ({
+        name: name
+        data: data
+      } for name, data of overallData.net_codes).sort (a, b) ->
+        return if parseFloat(a.name) <= parseFloat(b.name) then 1 else -1
+
   $scope.buildSeries()
 
   conn = new io.connect("http://#{window.location.host}",
