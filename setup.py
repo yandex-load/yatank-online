@@ -4,7 +4,7 @@ from setuptools import setup
 
 setup(
     name='yatank-online',
-    version='0.0.6',
+    version='0.0.7',
     description='Yandex.Tank OnlineReport plugin',
     author='Alexey Lavrenuke',
     author_email='direvius@gmail.com',
@@ -20,8 +20,8 @@ setup(
         'static/fonts/*',
     ]},
     install_requires=[
-        'tornado',
+        'tornado>=4.0',
         'tornadio2',
-        'pyjade>=3.1.0',
+        'pyjade>=4.0.0',
     ],
 )
