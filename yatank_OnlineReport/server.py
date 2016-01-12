@@ -129,4 +129,5 @@ class ReportServer(object):
             'data': self.cacher.get_all_data(),
             'uuid': self.reportUUID,
         }
-        return loader.load('offline.jade').generate(cached_data=json.dumps(cached_data))
+        return loader.load('offline.jade').generate(
+            cached_data=json.dumps(cached_data), autoescape=None)
