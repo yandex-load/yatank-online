@@ -159,7 +159,7 @@
       $scope.protoCodes = {
         name: "Protocol return codes",
         features: {
-          palette: 'classic9',
+          palette: 'spectrum14',
           hover: {},
           xAxis: {},
           yAxis: {},
@@ -196,7 +196,7 @@
       return $scope.netCodes = {
         name: "Network return codes",
         features: {
-          palette: 'classic9',
+          palette: 'spectrum14',
           hover: {},
           xAxis: {},
           yAxis: {},

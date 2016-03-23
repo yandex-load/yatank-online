@@ -57,6 +57,7 @@ html(lang="en")
                 graphEl = $compile("<div></div>")(scope);
                 mainEl.append(graphEl);
                 settings = getSettings(graphEl[0]);
+                Rickshaw.Series.zeroFill(settings.series);
                 scope.graph = new Rickshaw.Graph(settings);
                 if (scope.features && scope.features.hover) {
                   hoverConfig = {

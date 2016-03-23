@@ -25,6 +25,7 @@ angular.module("angular-rickshaw", []).directive "rickshaw", ($compile) ->
       graphEl = $compile("<div></div>")(scope)
       mainEl.append graphEl
       settings = getSettings(graphEl[0])
+      Rickshaw.Series.zeroFill(settings.series)
       scope.graph = new Rickshaw.Graph(settings)
       if scope.features and scope.features.hover
         hoverConfig = graph: scope.graph
