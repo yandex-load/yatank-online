@@ -1,1 +1,1 @@
-from plugin import OnlineReportPlugin as yatank_OnlineReportPlugin
+from plugin import Plugin

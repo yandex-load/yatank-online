@@ -1,23 +1,25 @@
-''' local webserver with online graphs '''
+import time
+import json
 from threading import Thread
 
-from ..Monitoring import MonitoringPlugin
+from ..Telegraf import Plugin as ReportPlugin
 from ..Aggregator import AggregatorPlugin
 from ...core.interfaces import AbstractPlugin
 
 from .server import ReportServer
-from .decode import decode_aggregate, decode_monitoring
-
-from .cache import DataCacher
 
 import logging
 
 logger = logging.getLogger(__name__)
 
 
-class OnlineReportPlugin(AbstractPlugin, Thread, AggregateResultListener):
+def uts(dt):
+    return int(time.mktime(dt.timetuple()))
+
+
+class Plugin(AbstractPlugin, Thread):
     '''Interactive report plugin '''
-    SECTION = "web"
+    SECTION = "report"
 
     @staticmethod
     def get_key():
@@ -30,7 +32,14 @@ class OnlineReportPlugin(AbstractPlugin, Thread, AggregateResultListener):
         self.port = 8080
         self.last_sec = None
         self.server = None
-        self.cache = DataCacher()
+        self.data = []
+        self.stats = []
+        self.monitoring = []
+
+    def get_all_data(self):
+        return {"data": self.data,
+                "stats": self.stats,
+                "monitoring": self.monitoring, }
 
     def get_available_options(self):
         return ["port"]
@@ -45,7 +54,7 @@ class OnlineReportPlugin(AbstractPlugin, Thread, AggregateResultListener):
                 "No aggregator module, no valid report will be available")
 
         try:
-            mon = self.core.get_plugin_of_type(MonitoringPlugin)
+            mon = self.core.get_plugin_of_type(ReportPlugin)
             if mon.monitoring:
                 mon.monitoring.add_listener(self)
         except KeyError:
@@ -53,7 +62,7 @@ class OnlineReportPlugin(AbstractPlugin, Thread, AggregateResultListener):
 
     def prepare_test(self):
         try:
-            self.server = ReportServer(self.cache)
+            self.server = ReportServer(self)
             self.server.owner = self
         except Exception, ex:
             logger.warning("Failed to start web results server: %s", ex)
@@ -71,38 +80,38 @@ class OnlineReportPlugin(AbstractPlugin, Thread, AggregateResultListener):
             self.server.serve()
             logger.info("Server started.")
 
-    def aggregate_second(self, data):
-        data = decode_aggregate(data)
-        self.cache.store(data)
-        if self.server is not None:
-            message = {'data': data, }
-            self.server.send(message)
-
     def on_aggregated_data(self, data, stats):
         """
         @data: aggregated data
         @stats: stats about gun
         """
-        data = decode_aggregate(data)
-        self.cache.store(data)
-        if self.server is not None:
-            message = {'data': data, }
-            self.server.send(message)
+        if data:
+            self.data.append(data)
+        if stats:
+            self.stats.append(stats)
+        if self.server is not None and (data or stats):
+            message = {'data': data, 'stats': stats}
+            self.server.send({k: v for k, v in message.iteritems() if v})
 
     def monitoring_data(self, data):
-        data = decode_monitoring(data)
-        self.cache.store(data)
-        if self.server is not None and len(data):
-            message = {'data': data, }
-            self.server.send(message)
+        if data:
+            self.monitoring.append(data)
+            message = {'monitoring': data, }
+            if self.server is not None:
+                self.server.send(message)
 
     def post_process(self, retcode):
-        logger.info("Building HTML report...")
+        report_json = self.core.mkstemp(".json", "report_")
+        logger.info("Saving JSON report to %s", report_json)
+        self.core.add_artifact_file(report_json)
+        with open(report_json, 'w') as report_json_file:
+            json.dump(self.get_all_data(), report_json_file, indent=2)
         report_html = self.core.mkstemp(".html", "report_")
+        logger.info("Saving HTML report to %s", report_html)
         self.core.add_artifact_file(report_html)
         with open(report_html, 'w') as report_html_file:
             report_html_file.write(self.server.render_offline())
-        #raw_input('Press Enter to stop report server.')
+        # raw_input('Press Enter to stop report server.')
         self.server.stop()
         del self.server
         self.server = None
