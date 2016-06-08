@@ -3,13 +3,13 @@
 from setuptools import setup
 
 setup(name='yatank-online',
-      version='0.0.9',
-      description='Yandex.Tank OnlineReport plugin',
+      version='1.8.1',
+      description='Yandex.Tank Report plugin',
       author='Alexey Lavrenuke',
       author_email='direvius@gmail.com',
       url='https://github.com/yandex-load/yatank-online/',
-      packages=['yatank_OnlineReport'],
-      package_data={'yatank_OnlineReport': [
+      packages=['yandextank.plugins.Report'],
+      package_data={'yandextank.plugins.Report': [
           'templates/*',
           'static/favicon.ico',
           'static/css/*',
@@ -18,6 +18,7 @@ setup(name='yatank-online',
           'static/js/vendor/*.js',
           'static/fonts/*',
       ]},
+      namespace_packages=['yandextank', 'yandextank.plugins'],
       install_requires=[
           'tornado',
           'tornadio2',
