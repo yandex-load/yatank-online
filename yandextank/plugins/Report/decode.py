@@ -1,5 +1,5 @@
 import time
-from yandextank.plugins.Monitoring.collector import MonitoringDataDecoder
+from ..Monitoring.collector import MonitoringDataDecoder
 
 mon_decoder = MonitoringDataDecoder()
 
@@ -16,11 +16,8 @@ def parse_number(val):
 
 
 def decode_monitoring(data):
-    data_items = (
-        mon_decoder.decode_line(line)
-        for line in data.splitlines()
-        if line.strip()
-    )
+    data_items = (mon_decoder.decode_line(line)
+                  for line in data.splitlines() if line.strip())
     result = {}
     for host, metrics, _, ts in data_items:
         host_metrics = result \
@@ -32,8 +29,8 @@ def decode_monitoring(data):
                 group, metric_name = metric_name.split('_', 1)
             else:
                 group = metric_name
-            host_metrics.setdefault(
-                group, {})[metric_name] = parse_number(value)
+            host_metrics.setdefault(group,
+                                    {})[metric_name] = parse_number(value)
     return result
 
 
