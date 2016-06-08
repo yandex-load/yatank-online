@@ -6,7 +6,7 @@ Yandex.Tank OnlineReport plugin. Shows you some charts while you're shooting and
 Install with ```pip install yatank-online``` and specify these lines in your Tank configuration:
 ```
 [tank]
-plugin_web=yatank_OnlineReport
+plugin_web=yandextank.plugins.Report
 ```
 Then start your shooting and go to ```http://localhost:8001/```
 
