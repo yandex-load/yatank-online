@@ -24,16 +24,16 @@ html(lang="en")
       document.cached_data = {{cached_data}};
   body
     .app.container(ng-app="ng-tank-report", ng-controller="TankReport")
-      .host(ng-repeat="host in monitoringData")
+      .host(ng-repeat="host in monitoringGraphData")
         h3 {{!host.hostname}}
         .row
-          .col-md-5(ng-repeat="group in host.groups")
+          .col-md-5(ng-repeat="chart in host.charts")
             .panel.panel-default
               .panel-heading
-                h3.panel-title {{!group.name}}
+                h3.panel-title {{!chart.name}}
               .panel-body
                 rickshaw(
-                  rickshaw-series="group.series",
-                  rickshaw-options="group.options",
-                  rickshaw-features="group.features"
+                  rickshaw-series="chart.series",
+                  rickshaw-options="chart.options",
+                  rickshaw-features="chart.features"
                 )

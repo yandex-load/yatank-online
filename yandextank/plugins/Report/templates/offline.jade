@@ -147,30 +147,84 @@ html(lang="en")
         });
 
         // ws.js
-        var app, collect_subtree,
-          __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
+        var app, collect_monitoring, collect_stats, collect_subtree,
+          indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
         app = angular.module("ng-tank-report", ["angular-rickshaw"]);
 
         collect_subtree = function(storage, subtree, ts) {
-          var key, node, _results;
-          _results = [];
+          var key, node, results;
+          results = [];
           for (key in subtree) {
             node = subtree[key];
             if (typeof node === 'number' || typeof node === 'array') {
-              _results.push(storage[key].push({
+              results.push(storage[key].push({
                 x: ts,
                 y: node
               }));
             } else {
-              _results.push(collect_subtree(storage[key], node, ts));
+              results.push(collect_subtree(storage[key], node, ts));
             }
           }
-          return _results;
+          return results;
+        };
+
+        collect_stats = function(stats) {
+          var i, len, metric, ref, result, statItem, value;
+          result = {};
+          for (i = 0, len = stats.length; i < len; i++) {
+            statItem = stats[i];
+            ref = statItem.metrics;
+            for (metric in ref) {
+              value = ref[metric];
+              if (!result[metric]) {
+                result[metric] = [];
+              }
+              result[metric].push({
+                x: +statItem.ts,
+                y: +value
+              });
+            }
+          }
+          return result;
+        };
+
+        collect_monitoring = function(monitoring) {
+          var host, hostData, i, len, metric, monItem, ref, ref1, result, subgroup, value;
+          result = {};
+          for (i = 0, len = monitoring.length; i < len; i++) {
+            monItem = monitoring[i];
+            monItem = monItem[0];
+            ref = monItem.data;
+            for (host in ref) {
+              hostData = ref[host];
+              if (!result[host]) {
+                result[host] = {
+                  comment: hostData.comment,
+                  metrics: {}
+                };
+              }
+              ref1 = hostData.metrics;
+              for (metric in ref1) {
+                value = ref1[metric];
+                subgroup = metric.split("_", 1);
+                if (!result[host].metrics[subgroup]) {
+                  result[host].metrics[subgroup] = {};
+                }
+                if (!result[host].metrics[subgroup][metric]) {
+                  result[host].metrics[subgroup][metric] = [];
+                }
+                result[host].metrics[subgroup][metric].push({
+                  x: monItem.timestamp,
+                  y: +value
+                });
+              }
+            }
+          }
+          return result;
         };
 
         app.controller("TankReport", function($scope, $element) {
-          var conn;
           $scope.status = "Disconnected";
           $scope.data = document.cached_data.data;
           $scope.uuid = document.cached_data.uuid;
@@ -186,31 +240,38 @@ html(lang="en")
             return $scope.$broadcast('DataUpdated');
           };
           $scope.buildSeries = function() {
-            var areaGraphs, data, groupName, groups, hostname, name, overallData, series;
-            if ($scope.data.responses && $scope.data.responses.overall) {
-              overallData = $scope.data.responses.overall;
+            var areaGraphs, cache, data, hostData, hostname, metric, metrics, monitoringData, name, overallData, series, statsData, subgroup, taggedData;
+            cache = document.cached_data.data;
+            if (cache.stats && cache.data && cache.monitoring) {
+              overallData = {};
+              taggedData = {};
+              statsData = collect_stats(cache.stats);
+              monitoringData = collect_monitoring(cache.monitoring);
             } else {
               overallData = {};
+              taggedData = {};
+              statsData = {};
+              monitoringData = {};
               setTimeout((function() {
                 return location.reload(true);
               }), 3000);
             }
             areaGraphs = ['CPU', 'Memory'];
-            $scope.monitoringData = (function() {
-              var _ref, _results;
-              _ref = $scope.data.monitoring;
-              _results = [];
-              for (hostname in _ref) {
-                groups = _ref[hostname];
-                _results.push({
+            $scope.monitoringGraphData = (function() {
+              var results;
+              results = [];
+              for (hostname in monitoringData) {
+                hostData = monitoringData[hostname];
+                results.push({
                   hostname: hostname,
-                  groups: (function() {
-                    var _results1;
-                    _results1 = [];
-                    for (groupName in groups) {
-                      series = groups[groupName];
-                      _results1.push({
-                        name: groupName,
+                  charts: (function() {
+                    var ref, results1;
+                    ref = hostData.metrics;
+                    results1 = [];
+                    for (subgroup in ref) {
+                      metrics = ref[subgroup];
+                      results1.push({
+                        name: subgroup,
                         features: {
                           palette: 'spectrum14',
                           hover: {},
@@ -222,27 +283,27 @@ html(lang="en")
                           }
                         },
                         options: {
-                          renderer: __indexOf.call(areaGraphs, groupName) >= 0 ? 'area' : 'line'
+                          renderer: indexOf.call(areaGraphs, groupName) >= 0 ? 'area' : 'line'
                         },
                         series: (function() {
-                          var _results2;
-                          _results2 = [];
-                          for (name in series) {
-                            data = series[name];
-                            _results2.push({
-                              name: name,
-                              data: data
+                          var results2;
+                          results2 = [];
+                          for (metric in metrics) {
+                            series = metrics[metric];
+                            results2.push({
+                              name: metric,
+                              data: series
                             });
                           }
-                          return _results2;
+                          return results2;
                         })()
                       });
                     }
-                    return _results1;
+                    return results1;
                   })()
                 });
               }
-              return _results;
+              return results;
             })();
             $scope.quantiles = {
               name: "Response time quantiles",
@@ -258,21 +319,21 @@ html(lang="en")
               },
               options: {
                 renderer: 'area',
-                unstack: true,
-                // height: $element[0].offsetHeight - 45 - 62
+                stack: false,
+                height: $element[0].offsetHeight - 45 - 62
               },
               series: ((function() {
-                var _ref, _results;
-                _ref = overallData.quantiles;
-                _results = [];
-                for (name in _ref) {
-                  data = _ref[name];
-                  _results.push({
+                var ref, results;
+                ref = overallData.quantiles;
+                results = [];
+                for (name in ref) {
+                  data = ref[name];
+                  results.push({
                     name: name,
                     data: data
                   });
                 }
-                return _results;
+                return results;
               })()).sort(function(a, b) {
                 if (parseFloat(a.name) <= parseFloat(b.name)) {
                   return 1;
@@ -294,9 +355,7 @@ html(lang="en")
                 }
               },
               options: {
-                renderer: 'area',
-                stack: true,
-                height: $element[0].offsetHeight - 45 - 62
+                renderer: 'line'
               },
               series: [
                 {
@@ -380,7 +439,7 @@ html(lang="en")
               })
             };
           };
-          $scope.buildSeries();
+          return $scope.buildSeries();
         });
       }).call(this);
   body
@@ -390,50 +449,24 @@ html(lang="en")
       #timings
         .panel.panel-default
           .panel-heading
-            h3.panel-title {{!quantiles.name}}
+            h3.panel-title {{!statsData.name}}
           .panel-body
             rickshaw.panel-body(
               rickshaw-series="quantiles.series",
               rickshaw-options="quantiles.options",
               rickshaw-features="quantiles.features"
             )
-        .panel.panel-default
-          .panel-heading
-            h3.panel-title {{!rps.name}}
-          .panel-body
-            rickshaw(
-              rickshaw-series="rps.series",
-              rickshaw-options="rps.options",
-              rickshaw-features="rps.features"
-            )
-      #codes
-        .panel.panel-default
-          .panel-heading
-            h3.panel-title {{!protoCodes.name}}
-          .panel-body
-            rickshaw(
-              rickshaw-series="protoCodes.series",
-              rickshaw-options="protoCodes.options",
-              rickshaw-features="protoCodes.features"
-            )        
-        .panel.panel-default
-          .panel-heading
-            h3.panel-title {{!netCodes.name}}
-          .panel-body
-            rickshaw(
-              rickshaw-series="netCodes.series",
-              rickshaw-options="netCodes.options",
-              rickshaw-features="netCodes.features"
-            )
       #monitoring
-        .host(ng-repeat="host in monitoringData")
+        .host(ng-repeat="host in monitoringGraphData")
           h3 {{!host.hostname}}
-          .panel.panel-default(ng-repeat="group in host.groups")
-            .panel-heading
-              h3.panel-title {{!group.name}}
-            .panel-body
-              rickshaw(
-                rickshaw-series="group.series",
-                rickshaw-options="group.options",
-                rickshaw-features="group.features"
-              )
+          .row
+            .col-md-5(ng-repeat="chart in host.charts")
+              .panel.panel-default
+                .panel-heading
+                  h3.panel-title {{!chart.name}}
+                .panel-body
+                  rickshaw(
+                    rickshaw-series="chart.series",
+                    rickshaw-options="chart.options",
+                    rickshaw-features="chart.features"
+                  )
