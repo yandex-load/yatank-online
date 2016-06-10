@@ -119,17 +119,11 @@ app.controller "TankReport", ($scope, $element) ->
               toggle: true
               highlight: true
           options:
-            renderer: 'multi'
+            renderer: if subgroup in areaGraphs then "area" else "line"
           series: ({
             name: metric
             data: series
-            renderer: if subgroup in areaGraphs then "area" else "line"
-          } for metric, series of metrics).concat [{
-            name: "Requests per second"
-            color: "red"
-            renderer: "line"
-            data: statsData.reqps
-          }]
+          } for metric, series of metrics)
         }) for subgroup, metrics of hostData.metrics
       } for hostname, hostData of monitoringData
     )
@@ -153,7 +147,7 @@ app.controller "TankReport", ($scope, $element) ->
       } for name, data of quantilesData.overall.interval_real.q).sort (a, b) ->
         return if parseFloat(a.name) <= parseFloat(b.name) then 1 else -1
     $scope.rps =
-      name: "Responses per second"
+      name: "Requests per second"
       features:
         palette: 'spectrum14'
         hover: {}
@@ -164,10 +158,11 @@ app.controller "TankReport", ($scope, $element) ->
           highlight: true
       options:
         renderer: 'line'
-      series: [
-        name: 'RPS'
-        data: overallData.RPS
-      ]
+      series: [{
+            name: "req/s"
+            color: "red"
+            data: statsData.reqps
+          }]
 
     $scope.protoCodes =
       name: "Protocol return codes"

@@ -185,28 +185,20 @@
                     }
                   },
                   options: {
-                    renderer: 'multi'
+                    renderer: indexOf.call(areaGraphs, subgroup) >= 0 ? "area" : "line"
                   },
-                  series: ((function() {
+                  series: (function() {
                     var results2;
                     results2 = [];
                     for (metric in metrics) {
                       series = metrics[metric];
                       results2.push({
                         name: metric,
-                        data: series,
-                        renderer: indexOf.call(areaGraphs, subgroup) >= 0 ? "area" : "line"
+                        data: series
                       });
                     }
                     return results2;
-                  })()).concat([
-                    {
-                      name: "Requests per second",
-                      color: "red",
-                      renderer: "line",
-                      data: statsData.reqps
-                    }
-                  ])
+                  })()
                 });
               }
               return results1;
@@ -253,7 +245,7 @@
         })
       };
       $scope.rps = {
-        name: "Responses per second",
+        name: "Requests per second",
         features: {
           palette: 'spectrum14',
           hover: {},
@@ -269,8 +261,9 @@
         },
         series: [
           {
-            name: 'RPS',
-            data: overallData.RPS
+            name: "req/s",
+            color: "red",
+            data: statsData.reqps
           }
         ]
       };

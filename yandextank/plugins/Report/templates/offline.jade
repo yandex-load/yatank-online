@@ -412,7 +412,7 @@ html(lang="en")
               })
             };
             $scope.rps = {
-              name: "Responses per second",
+              name: "Requests per second",
               features: {
                 palette: 'spectrum14',
                 hover: {},
@@ -428,8 +428,9 @@ html(lang="en")
               },
               series: [
                 {
-                  name: 'RPS',
-                  data: overallData.RPS
+                  name: "req/s",
+                  color: "red",
+                  data: statsData.reqps
                 }
               ]
             };
