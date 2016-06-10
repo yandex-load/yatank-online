@@ -38,7 +38,7 @@ angular.module("angular-rickshaw", []).directive "rickshaw", ($compile) ->
         i = 0
 
         while i < settings.series.length
-          settings.series[i].color = palette.color()
+          settings.series[i].color = palette.color() if !settings.series[i].color
           i++
       scope.graph.render()
       if scope.features and scope.features.xAxis
@@ -49,10 +49,15 @@ angular.module("angular-rickshaw", []).directive "rickshaw", ($compile) ->
         xAxis = new Rickshaw.Graph.Axis.Time(xAxisConfig)
         xAxis.render()
       if scope.features and scope.features.yAxis
-        yAxisConfig = graph: scope.graph
+        yAxisConfig = graph: scope.graph, orientation: 'left'
         yAxisConfig.tickFormat = Rickshaw.Fixtures.Number[scope.features.yAxis.tickFormat]  if scope.features.yAxis.tickFormat
         yAxis = new Rickshaw.Graph.Axis.Y(yAxisConfig)
         yAxis.render()
+      if scope.features and scope.features.yAxisSecondary
+        yAxisSecondaryConfig = graph: scope.graph, orientation: 'right'
+        yAxisSecondaryConfig.tickFormat = Rickshaw.Fixtures.Number[scope.features.yAxisSecondary.tickFormat]  if scope.features.yAxisSecondary.tickFormat
+        yAxisSecondary = new Rickshaw.Graph.Axis.Y(yAxisSecondaryConfig)
+        yAxisSecondary.render()
       if scope.features and scope.features.legend
         legendEl = $compile("<div></div>")(scope)
         mainEl.append legendEl

@@ -95,7 +95,7 @@ class Plugin(AbstractPlugin, Thread):
 
     def monitoring_data(self, data):
         if data:
-            self.monitoring.append(data)
+            self.monitoring += data
             message = {'monitoring': data, }
             if self.server is not None:
                 self.server.send(message)

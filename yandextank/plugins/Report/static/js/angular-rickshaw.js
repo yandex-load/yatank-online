@@ -24,7 +24,7 @@ Based on https://github.com/ngyewch/angular-rickshaw
           return settings;
         };
         update = function() {
-          var graphEl, highlighter, hoverConfig, hoverDetail, i, legend, legendEl, mainEl, palette, settings, shelving, time, xAxis, xAxisConfig, yAxis, yAxisConfig;
+          var graphEl, highlighter, hoverConfig, hoverDetail, i, legend, legendEl, mainEl, palette, settings, shelving, time, xAxis, xAxisConfig, yAxis, yAxisConfig, yAxisSecondary, yAxisSecondaryConfig;
           mainEl = angular.element(element);
           mainEl.append(graphEl);
           mainEl.empty();
@@ -66,13 +66,25 @@ Based on https://github.com/ngyewch/angular-rickshaw
           }
           if (scope.features && scope.features.yAxis) {
             yAxisConfig = {
-              graph: scope.graph
+              graph: scope.graph,
+              orientation: 'left'
             };
             if (scope.features.yAxis.tickFormat) {
               yAxisConfig.tickFormat = Rickshaw.Fixtures.Number[scope.features.yAxis.tickFormat];
             }
             yAxis = new Rickshaw.Graph.Axis.Y(yAxisConfig);
             yAxis.render();
+          }
+          if (scope.features && scope.features.yAxisSecondary) {
+            yAxisSecondaryConfig = {
+              graph: scope.graph,
+              orientation: 'right'
+            };
+            if (scope.features.yAxisSecondary.tickFormat) {
+              yAxisSecondaryConfig.tickFormat = Rickshaw.Fixtures.Number[scope.features.yAxisSecondary.tickFormat];
+            }
+            yAxisSecondary = new Rickshaw.Graph.Axis.Y(yAxisSecondaryConfig);
+            yAxisSecondary.render();
           }
           if (scope.features && scope.features.legend) {
             legendEl = $compile("<div></div>")(scope);

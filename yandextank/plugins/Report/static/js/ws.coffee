@@ -22,7 +22,6 @@ collect_stats = (stats) ->
 collect_monitoring = (monitoring) ->
   result = {}
   for monItem in monitoring
-    monItem = monItem[0]
     for host, hostData of monItem.data
       result[host] = {comment: hostData.comment, metrics: {}} if not result[host]
       for metric, value of hostData.metrics
@@ -32,6 +31,30 @@ collect_monitoring = (monitoring) ->
         result[host].metrics[subgroup][metric].push
           x: +monItem.timestamp
           y: +value
+  result
+
+collect_quantiles = (data) ->
+
+  result = {
+    overall:
+      interval_real:
+        q: {}
+    tagged: {}
+  }
+  for dataItem in data
+    for i in [0...dataItem.overall.interval_real.q.q.length]
+      result.overall.interval_real.q[dataItem.overall.interval_real.q.q[i]] = [] if not result.overall.interval_real.q[dataItem.overall.interval_real.q.q[i]]
+      result.overall.interval_real.q[dataItem.overall.interval_real.q.q[i]].push
+        x: dataItem.ts
+        y: dataItem.overall.interval_real.q.value[i]
+    for tag, tagData of dataItem.tagged
+      result.tagged[tag] = {interval_real: { q: {}}} if not result.tagged[tag]
+      
+      for i in [0...tagData.interval_real.q.q.length]
+        result.tagged[tag].interval_real.q[tagData.interval_real.q.q[i]] = [] if not result.tagged[tag].interval_real.q[tagData.interval_real.q.q[i]]
+        result.tagged[tag].interval_real.q[tagData.interval_real.q.q[i]].push
+          x: dataItem.ts
+          y: tagData.interval_real.q.value[i]
   result
 
 app.controller "TankReport", ($scope, $element) ->
@@ -48,11 +71,13 @@ app.controller "TankReport", ($scope, $element) ->
     if cache.stats and cache.data and cache.monitoring
       overallData = {} # TODO
       taggedData = {} # TODO
+      quantilesData = collect_quantiles(cache.data)
       statsData = collect_stats(cache.stats)
       monitoringData = collect_monitoring(cache.monitoring)
     else
       overallData = {}
       taggedData = {}
+      quantilesData = {}
       statsData = {}
       monitoringData = {}
       setTimeout((() -> location.reload(true)), 3000)
@@ -88,19 +113,27 @@ app.controller "TankReport", ($scope, $element) ->
             hover: {}
             xAxis: {}
             yAxis: {}
+            ySecondaryAxis:
+              scale: null
             legend:
               toggle: true
               highlight: true
           options:
-            renderer: if groupName in areaGraphs then 'area' else 'line'
+            renderer: 'multi'
           series: ({
             name: metric
             data: series
-          } for metric, series of metrics)
+            renderer: if subgroup in areaGraphs then "area" else "line"
+          } for metric, series of metrics).concat [{
+            name: "Requests per second"
+            color: "red"
+            renderer: "line"
+            data: statsData.reqps
+          }]
         }) for subgroup, metrics of hostData.metrics
       } for hostname, hostData of monitoringData
     )
-    $scope.quantiles =
+    $scope.quantilesGraphData =
       name: "Response time quantiles"
       features:
         palette: 'classic9'
@@ -117,7 +150,7 @@ app.controller "TankReport", ($scope, $element) ->
       series: ({
         name: name
         data: data
-      } for name, data of overallData.quantiles).sort (a, b) ->
+      } for name, data of quantilesData.overall.interval_real.q).sort (a, b) ->
         return if parseFloat(a.name) <= parseFloat(b.name) then 1 else -1
     $scope.rps =
       name: "Responses per second"

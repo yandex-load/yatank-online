@@ -50,7 +50,7 @@ html(lang="en")
                 return settings;
               };
               update = function() {
-                var graphEl, highlighter, hoverConfig, hoverDetail, i, legend, legendEl, mainEl, palette, settings, shelving, time, xAxis, xAxisConfig, yAxis, yAxisConfig;
+                var graphEl, highlighter, hoverConfig, hoverDetail, i, legend, legendEl, mainEl, palette, settings, shelving, time, xAxis, xAxisConfig, yAxis, yAxisConfig, yAxisSecondary, yAxisSecondaryConfig;
                 mainEl = angular.element(element);
                 mainEl.append(graphEl);
                 mainEl.empty();
@@ -92,13 +92,25 @@ html(lang="en")
                 }
                 if (scope.features && scope.features.yAxis) {
                   yAxisConfig = {
-                    graph: scope.graph
+                    graph: scope.graph,
+                    orientation: 'left'
                   };
                   if (scope.features.yAxis.tickFormat) {
                     yAxisConfig.tickFormat = Rickshaw.Fixtures.Number[scope.features.yAxis.tickFormat];
                   }
                   yAxis = new Rickshaw.Graph.Axis.Y(yAxisConfig);
                   yAxis.render();
+                }
+                if (scope.features && scope.features.yAxisSecondary) {
+                  yAxisSecondaryConfig = {
+                    graph: scope.graph,
+                    orientation: 'right'
+                  };
+                  if (scope.features.yAxisSecondary.tickFormat) {
+                    yAxisSecondaryConfig.tickFormat = Rickshaw.Fixtures.Number[scope.features.yAxisSecondary.tickFormat];
+                  }
+                  yAxisSecondary = new Rickshaw.Graph.Axis.Y(yAxisSecondaryConfig);
+                  yAxisSecondary.render();
                 }
                 if (scope.features && scope.features.legend) {
                   legendEl = $compile("<div></div>")(scope);
@@ -147,7 +159,7 @@ html(lang="en")
         });
 
         // ws.js
-        var app, collect_monitoring, collect_stats, collect_subtree,
+        var app, collect_monitoring, collect_quantiles, collect_stats, collect_subtree,
           indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
         app = angular.module("ng-tank-report", ["angular-rickshaw"]);
@@ -170,10 +182,10 @@ html(lang="en")
         };
 
         collect_stats = function(stats) {
-          var i, len, metric, ref, result, statItem, value;
+          var j, len, metric, ref, result, statItem, value;
           result = {};
-          for (i = 0, len = stats.length; i < len; i++) {
-            statItem = stats[i];
+          for (j = 0, len = stats.length; j < len; j++) {
+            statItem = stats[j];
             ref = statItem.metrics;
             for (metric in ref) {
               value = ref[metric];
@@ -190,11 +202,10 @@ html(lang="en")
         };
 
         collect_monitoring = function(monitoring) {
-          var host, hostData, i, len, metric, monItem, ref, ref1, result, subgroup, value;
+          var host, hostData, j, len, metric, monItem, ref, ref1, result, subgroup, value;
           result = {};
-          for (i = 0, len = monitoring.length; i < len; i++) {
-            monItem = monitoring[i];
-            monItem = monItem[0];
+          for (j = 0, len = monitoring.length; j < len; j++) {
+            monItem = monitoring[j];
             ref = monItem.data;
             for (host in ref) {
               hostData = ref[host];
@@ -215,8 +226,53 @@ html(lang="en")
                   result[host].metrics[subgroup][metric] = [];
                 }
                 result[host].metrics[subgroup][metric].push({
-                  x: monItem.timestamp,
+                  x: +monItem.timestamp,
                   y: +value
+                });
+              }
+            }
+          }
+          return result;
+        };
+
+        collect_quantiles = function(data) {
+          var dataItem, i, j, k, l, len, ref, ref1, ref2, result, tag, tagData;
+          result = {
+            overall: {
+              interval_real: {
+                q: {}
+              }
+            },
+            tagged: {}
+          };
+          for (j = 0, len = data.length; j < len; j++) {
+            dataItem = data[j];
+            for (i = k = 0, ref = dataItem.overall.interval_real.q.q.length; 0 <= ref ? k < ref : k > ref; i = 0 <= ref ? ++k : --k) {
+              if (!result.overall.interval_real.q[dataItem.overall.interval_real.q.q[i]]) {
+                result.overall.interval_real.q[dataItem.overall.interval_real.q.q[i]] = [];
+              }
+              result.overall.interval_real.q[dataItem.overall.interval_real.q.q[i]].push({
+                x: dataItem.ts,
+                y: dataItem.overall.interval_real.q.value[i]
+              });
+            }
+            ref1 = dataItem.tagged;
+            for (tag in ref1) {
+              tagData = ref1[tag];
+              if (!result.tagged[tag]) {
+                result.tagged[tag] = {
+                  interval_real: {
+                    q: {}
+                  }
+                };
+              }
+              for (i = l = 0, ref2 = tagData.interval_real.q.q.length; 0 <= ref2 ? l < ref2 : l > ref2; i = 0 <= ref2 ? ++l : --l) {
+                if (!result.tagged[tag].interval_real.q[tagData.interval_real.q.q[i]]) {
+                  result.tagged[tag].interval_real.q[tagData.interval_real.q.q[i]] = [];
+                }
+                result.tagged[tag].interval_real.q[tagData.interval_real.q.q[i]].push({
+                  x: dataItem.ts,
+                  y: tagData.interval_real.q.value[i]
                 });
               }
             }
@@ -240,16 +296,18 @@ html(lang="en")
             return $scope.$broadcast('DataUpdated');
           };
           $scope.buildSeries = function() {
-            var areaGraphs, cache, data, hostData, hostname, metric, metrics, monitoringData, name, overallData, series, statsData, subgroup, taggedData;
+            var areaGraphs, cache, data, hostData, hostname, metric, metrics, monitoringData, name, overallData, quantilesData, series, statsData, subgroup, taggedData;
             cache = document.cached_data.data;
             if (cache.stats && cache.data && cache.monitoring) {
               overallData = {};
               taggedData = {};
+              quantilesData = collect_quantiles(cache.data);
               statsData = collect_stats(cache.stats);
               monitoringData = collect_monitoring(cache.monitoring);
             } else {
               overallData = {};
               taggedData = {};
+              quantilesData = {};
               statsData = {};
               monitoringData = {};
               setTimeout((function() {
@@ -277,26 +335,37 @@ html(lang="en")
                           hover: {},
                           xAxis: {},
                           yAxis: {},
+                          ySecondaryAxis: {
+                            scale: null
+                          },
                           legend: {
                             toggle: true,
                             highlight: true
                           }
                         },
                         options: {
-                          renderer: indexOf.call(areaGraphs, groupName) >= 0 ? 'area' : 'line'
+                          renderer: 'multi'
                         },
-                        series: (function() {
+                        series: ((function() {
                           var results2;
                           results2 = [];
                           for (metric in metrics) {
                             series = metrics[metric];
                             results2.push({
                               name: metric,
-                              data: series
+                              data: series,
+                              renderer: indexOf.call(areaGraphs, subgroup) >= 0 ? "area" : "line"
                             });
                           }
                           return results2;
-                        })()
+                        })()).concat([
+                          {
+                            name: "Requests per second",
+                            color: "red",
+                            renderer: "line",
+                            data: statsData.reqps
+                          }
+                        ])
                       });
                     }
                     return results1;
@@ -305,7 +374,7 @@ html(lang="en")
               }
               return results;
             })();
-            $scope.quantiles = {
+            $scope.quantilesGraphData = {
               name: "Response time quantiles",
               features: {
                 palette: 'classic9',
@@ -324,7 +393,7 @@ html(lang="en")
               },
               series: ((function() {
                 var ref, results;
-                ref = overallData.quantiles;
+                ref = quantilesData.overall.interval_real.q;
                 results = [];
                 for (name in ref) {
                   data = ref[name];
@@ -441,26 +510,31 @@ html(lang="en")
           };
           return $scope.buildSeries();
         });
+
       }).call(this);
   body
     .app.container(ng-app="ng-tank-report", ng-controller="TankReport")
-      h1.page-header Yandex.Tank online report
+      h1.page-heading Yandex.Tank online report
       #status {{!status}}
-      #timings
-        .panel.panel-default
-          .panel-heading
-            h3.panel-title {{!statsData.name}}
-          .panel-body
-            rickshaw.panel-body(
-              rickshaw-series="quantiles.series",
-              rickshaw-options="quantiles.options",
-              rickshaw-features="quantiles.features"
-            )
+      #quantiles
+        h2.part-heading Response time metrics
+        .row
+          .col-md-10
+            .panel.panel-default
+              .panel-heading
+                h3.panel-title {{!quantilesGraphData.name}}
+              .panel-body
+                rickshaw(
+                  rickshaw-series="quantilesGraphData.series",
+                  rickshaw-options="quantilesGraphData.options",
+                  rickshaw-features="quantilesGraphData.features"
+                  )
       #monitoring
+        h2.part-heading Monitoring metrics
         .host(ng-repeat="host in monitoringGraphData")
           h3 {{!host.hostname}}
           .row
-            .col-md-5(ng-repeat="chart in host.charts")
+            .col-md-10(ng-repeat="chart in host.charts")
               .panel.panel-default
                 .panel-heading
                   h3.panel-title {{!chart.name}}
