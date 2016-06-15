@@ -1,3 +1,7 @@
+# Attention please!
+
+This doc is for new version of a plugin (currently work-in-progress). The old one (code and doc) is here: https://github.com/yandex-load/yatank-online/tree/1.7_branch
+
 # yatank-online
 
 Yandex.Tank OnlineReport plugin. Shows you some charts while you're shooting and saves a report in the end.
