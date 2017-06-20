@@ -1,6 +1,6 @@
 # Attention please!
 
-This plugin is not the prefered way to build reports currently. Use Yandex [https://overload.yandex.net/mainpage/guide#install](Overload) instead.
+This plugin is not the prefered way to build reports currently. Use Yandex [Overload](https://overload.yandex.net/mainpage/guide#install) instead.
 
 This doc is for new version of a plugin (currently work-in-progress). The old one (code and doc) is here: https://github.com/yandex-load/yatank-online/tree/1.7_branch
 
